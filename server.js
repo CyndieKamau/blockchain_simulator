@@ -27,6 +27,10 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.get('/basics', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'basics.html'));
+});
+
 app.get('/learn', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'learn.html'));
 });
@@ -388,6 +392,7 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log('🚀 Workshop Blockchain Server started!');
     console.log(`📡 Server running on http://localhost:${PORT}`);
+    console.log('📊 Dashboard: http://localhost:3000/basics');
     console.log('📊 Dashboard: http://localhost:3000/dashboard');
     console.log('👤 User interface: http://localhost:3000/user');
     console.log('⛏️ Miner interface: http://localhost:3000/miner');
