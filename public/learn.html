@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn Cairo - Village Directory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #000000 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .learn-container {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffffff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .nav-link {
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: calc(100vh - 140px);
+        }
+        
+        .code-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+        }
+        
+        .explanation-panel {
+            background: rgba(255, 255, 255, 0.05);
+            overflow-y: auto;
+        }
+        
+        .panel-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .code-content {
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .code-section {
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+        }
+        
+        .code-section:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+        
+        .code-section.active {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            transform: translateX(10px);
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .code-line {
+            margin: 3px 0;
+        }
+        
+        .keyword {
+            color: #569cd6;
+            font-weight: bold;
+        }
+        
+        .type {
+            color: #4ec9b0;
+        }
+        
+        .string {
+            color: #ce9178;
+        }
+        
+        .comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+        
+        .function {
+            color: #dcdcaa;
+        }
+        
+        .attribute {
+            color: #9cdcfe;
+        }
+        
+        .explanation-content {
+            padding: 20px;
+        }
+        
+        .explanation-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+            display: none;
+        }
+        
+        .explanation-section.active {
+            display: block;
+            border-left-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .explanation-title {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: #4CAF50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .simple-explanation {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid #FF9800;
+        }
+        
+        .analogy {
+            background: rgba(33, 150, 243, 0.1);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .analogy-title {
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .key-points {
+            margin-top: 15px;
+        }
+        
+        .key-point {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+        
+        .point-icon {
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .footer {
+            background: rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px 20px;
+            text-align: center;
+        }
+        
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 4px;
+            border-radius: 2px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+            
+            .code-panel {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="learn-container">
+        <div class="header">
+            <h1>🏘️ Learn Cairo: Village Directory</h1>
+            <p>Understanding Smart Contracts Through Simple Examples</p>
+            
+            <div class="nav-links">
+                <a href="/" class="nav-link">🏠 Workshop Home</a>
+                <a href="/dashboard" class="nav-link">📊 Dashboard</a>
+                <a href="/user" class="nav-link">👤 User Portal</a>
+                <a href="/miner" class="nav-link">⛏️ Miner Portal</a>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="code-panel">
+                <div class="panel-header">
+                    📝 Cairo Smart Contract Code
+                </div>
+                <div class="code-content">
+                    <div class="code-section" data-section="interface" onclick="showExplanation('interface')">
+                        <h3 style="color: #4CAF50; margin-bottom: 10px;">1. Interface Definition</h3>
+                        <div class="code-block">
+                            <div class="code-line"><span class="attribute">#[starknet::interface]</span></div>
+                            <div class="code-line"><span class="keyword">trait</span> <span class="type">IVillageDirectory</span>&lt;<span class="type">TContractState</span>&gt; {</div>
+                            <div class="code-line">    <span class="keyword">fn</span> <span class="function">set_villager</span>(<span class="keyword">ref</span> <span class="keyword">self</span>: <span class="type">TContractState</span>, <span class="function">name</span>: <span class="type">felt252</span>, <span class="function">age</span>: <span class="type">felt252</span>);</div>
+                            <div class="code-line">    <span class="keyword">fn</span> <span class="function">get_villager</span>(<span class="keyword">self</span>: @<span class="type">TContractState</span>) -> (<span class="type">felt252</span>, <span class="type">felt252</span>);</div>
+                            <div class="code-line">}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="code-section" data-section="struct" onclick="showExplanation('struct')">
+                        <h3 style="color: #4CAF50; margin-bottom: 10px;">2. Data Structure</h3>
+                        <div class="code-block">
+                            <div class="code-line"><span class="attribute">#[derive(Drop, Serde, starknet::Store)]</span></div>
+                            <div class="code-line"><span class="keyword">struct</span> <span class="type">Person</span> {</div>
+                            <div class="code-line">    <span class="function">name</span>: <span class="type">felt252</span>,</div>
+                            <div class="code-line">    <span class="function">age</span>: <span class="type">felt252</span></div>
+                            <div class="code-line">}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="code-section" data-section="contract" onclick="showExplanation('contract')">
+                        <h3 style="color: #4CAF50; margin-bottom: 10px;">3. Contract Declaration</h3>
+                        <div class="code-block">
+                            <div class="code-line"><span class="attribute">#[starknet::contract]</span></div>
+                            <div class="code-line"><span class="keyword">mod</span> <span class="type">VillageDirectory</span> {</div>
+                            <div class="code-line">    <span class="keyword">use</span> starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};</div>
+                            <div class="code-line">    <span class="keyword">use</span> <span class="keyword">super</span>::{Person, IVillageDirectory};</div>
+                        </div>
+                    </div>
+                    
+                    <div class="code-section" data-section="storage" onclick="showExplanation('storage')">
+                        <h3 style="color: #4CAF50; margin-bottom: 10px;">4. Storage Definition</h3>
+                        <div class="code-block">
+                            <div class="code-line">    <span class="attribute">#[storage]</span></div>
+                            <div class="code-line">    <span class="keyword">struct</span> <span class="type">Storage</span> {</div>
+                            <div class="code-line">        <span class="function">villager</span>: <span class="type">Person</span>,</div>
+                            <div class="code-line">    }</div>
+                        </div>
+                    </div>
+                    
+                    <div class="code-section" data-section="implementation" onclick="showExplanation('implementation')">
+                        <h3 style="color: #4CAF50; margin-bottom: 10px;">5. Function Implementation</h3>
+                        <div class="code-block">
+                            <div class="code-line">    <span class="attribute">#[abi(embed_v0)]</span></div>
+                            <div class="code-line">    <span class="keyword">impl</span> <span class="type">VillageDirectory</span> <span class="keyword">of</span> <span class="type">IVillageDirectory</span>&lt;<span class="type">ContractState</span>&gt; {</div>
+                            <div class="code-line">        <span class="keyword">fn</span> <span class="function">set_villager</span>(<span class="keyword">ref</span> <span class="keyword">self</span>: <span class="type">ContractState</span>, <span class="function">name</span>: <span class="type">felt252</span>, <span class="function">age</span>: <span class="type">felt252</span>) {</div>
+                            <div class="code-line">            <span class="keyword">let</span> <span class="function">person_one</span> = <span class="type">Person</span> {<span class="function">name</span>, <span class="function">age</span>};</div>
+                            <div class="code-line">            <span class="keyword">self</span>.<span class="function">villager</span>.<span class="function">write</span>(<span class="function">person_one</span>);</div>
+                            <div class="code-line">        }</div>
+                            <div class="code-line"></div>
+                            <div class="code-line">        <span class="keyword">fn</span> <span class="function">get_villager</span>(<span class="keyword">self</span>: @<span class="type">ContractState</span>) -> (<span class="type">felt252</span>, <span class="type">felt252</span>) {</div>
+                            <div class="code-line">            <span class="keyword">let</span> <span class="function">person_one</span> = <span class="keyword">self</span>.<span class="function">villager</span>.<span class="function">read</span>();</div>
+                            <div class="code-line">            (<span class="function">person_one</span>.<span class="function">name</span>, <span class="function">person_one</span>.<span class="function">age</span>)</div>
+                            <div class="code-line">        }</div>
+                            <div class="code-line">    }</div>
+                            <div class="code-line">}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="explanation-panel">
+                <div class="panel-header">
+                    💡 What This Means (In Simple Terms)
+                </div>
+                <div class="explanation-content">
+                    <div class="explanation-section active" id="interface-explanation">
+                        <div class="explanation-title">
+                            📋 Interface: The Contract Menu
+                        </div>
+                        <div class="simple-explanation">
+                            Think of this like a menu at a restaurant! It tells everyone what they can do with your smart contract.
+                        </div>
+                        <div class="analogy">
+                            <div class="analogy-title">🍽️ Restaurant Analogy</div>
+                            Just like a restaurant menu lists "Order Pizza" or "Get Bill", our contract interface lists "Add Villager" and "Find Villager".
+                        </div>
+                        <div class="key-points">
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>set_villager:</strong> Add someone new to the village directory</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>get_villager:</strong> Look up who lives in the village</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>felt252:</strong> Cairo's way of storing text and numbers</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation-section" id="struct-explanation">
+                        <div class="explanation-title">
+                            📝 Data Structure: The Information Template
+                        </div>
+                        <div class="simple-explanation">
+                            This creates a template for storing information about each villager - like a registration form!
+                        </div>
+                        <div class="analogy">
+                            <div class="analogy-title">📋 Registration Form Analogy</div>
+                            Like a hotel registration card that always has spaces for "Name" and "Age", our Person struct always stores these two pieces of information.
+                        </div>
+                        <div class="key-points">
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>struct Person:</strong> A template for villager information</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>name & age:</strong> The two pieces of info we store for each person</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>#[derive(...)]:</strong> Special instructions that make the struct work with Starknet</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation-section" id="contract-explanation">
+                        <div class="explanation-title">
+                            🏗️ Contract Declaration: Building the Smart Contract
+                        </div>
+                        <div class="simple-explanation">
+                            This tells Starknet "I'm creating a smart contract!" and imports the tools we need.
+                        </div>
+                        <div class="analogy">
+                            <div class="analogy-title">🏗️ Construction Site Analogy</div>
+                            Like putting up a sign that says "Building a House Here" and bringing in the tools and materials needed for construction.
+                        </div>
+                        <div class="key-points">
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>#[starknet::contract]:</strong> "This is a smart contract!"</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>use statements:</strong> Import the tools we need (like bringing a hammer to build)</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>mod VillageDirectory:</strong> The name of our smart contract</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation-section" id="storage-explanation">
+                        <div class="explanation-title">
+                            🗄️ Storage: The Contract's Memory
+                        </div>
+                        <div class="simple-explanation">
+                            This is where your smart contract remembers information permanently on the blockchain!
+                        </div>
+                        <div class="analogy">
+                            <div class="analogy-title">🗄️ Filing Cabinet Analogy</div>
+                            Like a filing cabinet in an office where you store important documents that need to be kept forever - except this cabinet is on the blockchain!
+                        </div>
+                        <div class="key-points">
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>#[storage]:</strong> "This is where I store my data"</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>villager: Person:</strong> Space to store one villager's information</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>Permanent:</strong> Once stored, this data lives on the blockchain forever!</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation-section" id="implementation-explanation">
+                        <div class="explanation-title">
+                            ⚙️ Functions: What the Contract Actually Does
+                        </div>
+                        <div class="simple-explanation">
+                            These are the actual actions people can perform - like having a receptionist who can add or look up villager information!
+                        </div>
+                        <div class="analogy">
+                            <div class="analogy-title">🏨 Hotel Reception Analogy</div>
+                            Like a hotel receptionist who can either "check you in" (set_villager) or "look up your reservation" (get_villager).
+                        </div>
+                        <div class="key-points">
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>set_villager:</strong> Adds a new person to the village (changes storage)</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>get_villager:</strong> Looks up who lives in the village (reads storage)</span>
+                            </div>
+                            <div class="key-point">
+                                <span class="point-icon">✅</span>
+                                <span><strong>ref self vs @self:</strong> "ref" can change data, "@" can only read data</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>🚀 Click on any code section on the left to learn what it does!</p>
+        </div>
+    </div>
+
+    <script>
+        let currentSection = 'interface';
+        const totalSections = 5;
+        
+        function showExplanation(sectionId) {
+            // Hide all explanations
+            document.querySelectorAll('.explanation-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Hide all code section highlights
+            document.querySelectorAll('.code-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected explanation
+            document.getElementById(sectionId + '-explanation').classList.add('active');
+            
+            // Highlight selected code section
+            document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+            
+            // Update progress
+            currentSection = sectionId;
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const sections = ['interface', 'struct', 'contract', 'storage', 'implementation'];
+            const currentIndex = sections.indexOf(currentSection);
+            const progress = ((currentIndex + 1) / totalSections) * 100;
+            
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+        
+        // Auto-advance through sections (optional)
+        function startTour() {
+            const sections = ['interface', 'struct', 'contract', 'storage', 'implementation'];
+            let index = 0;
+            
+            const interval = setInterval(() => {
+                showExplanation(sections[index]);
+                index++;
+                
+                if (index >= sections.length) {
+                    clearInterval(interval);
+                }
+            }, 5000); // Change section every 5 seconds
+        }
+        
+        // Initialize with first section
+        updateProgress();
+        
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const sections = ['interface', 'struct', 'contract', 'storage', 'implementation'];
+            const currentIndex = sections.indexOf(currentSection);
+            
+            if (e.key === 'ArrowRight' && currentIndex < sections.length - 1) {
+                showExplanation(sections[currentIndex + 1]);
+            } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                showExplanation(sections[currentIndex - 1]);
+            }
+        });
+        
+        // Add scroll sync (optional)
+        document.querySelector('.code-panel').addEventListener('scroll', function() {
+            // Could sync explanation panel scroll here if desired
+        });
+    </script>
+</body>
+</html>
