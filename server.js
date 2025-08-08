@@ -27,6 +27,10 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.get('/learn', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'learn.html'));
+});
+
 app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
@@ -387,6 +391,7 @@ server.listen(PORT, () => {
     console.log('📊 Dashboard: http://localhost:3000/dashboard');
     console.log('👤 User interface: http://localhost:3000/user');
     console.log('⛏️ Miner interface: http://localhost:3000/miner');
+    console.log('⛏️ Learning interface: http://localhost:3000/learn');
     console.log('');
     console.log('🎮 Ready for workshop participants!');
 });
