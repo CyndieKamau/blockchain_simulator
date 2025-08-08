@@ -303,8 +303,18 @@
         let miningCountdown = null;
         let selectedForMining = false;
         
-        // Check if user is logged in
-        const participantData = localStorage.getItem('workshopParticipant');
+        // Check if user is logged in and get correct participant data
+        const currentParticipant = localStorage.getItem('currentWorkshopParticipant');
+        if (!currentParticipant) {
+            window.location.href = '/';
+        }
+        
+        const participantInfo = JSON.parse(currentParticipant);
+        if (participantInfo.role !== 'miner') {
+            window.location.href = '/';
+        }
+        
+        const participantData = localStorage.getItem(participantInfo.key);
         if (!participantData) {
             window.location.href = '/';
         }

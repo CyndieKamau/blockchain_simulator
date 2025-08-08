@@ -4,9 +4,187 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workshop Blockchain - Join</title>
-    <link rel="stylesheet" href="/css/login.css">
     <script src="/socket.io/socket.io.js"></script>
-   
+    <style>
+        /* Login page specific styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #000000 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+            padding: 40px 20px;
+        }
+        
+        .content-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .logo {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ffffff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #e0e0e0;
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        
+        .form-label {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .role-option {
+            padding: 20px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .role-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .role-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .role-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .role-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .role-description {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .join-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .join-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .join-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .workshop-links {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .workshop-links h3 {
+            margin-bottom: 15px;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        
+        .link-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .workshop-link {
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .workshop-link:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        @media (max-width: 600px) {
+            .role-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .link-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
@@ -123,8 +301,16 @@
         socket.on('join-success', function(data) {
             showMessage(`Welcome ${data.participant.nickname}! Redirecting...`, 'success');
             
-            // Store participant data
-            localStorage.setItem('workshopParticipant', JSON.stringify(data.participant));
+            // Store participant data with role-specific key
+            const storageKey = `workshopParticipant_${data.participant.role}_${data.participant.nickname}`;
+            localStorage.setItem(storageKey, JSON.stringify(data.participant));
+            
+            // Also store current active participant
+            localStorage.setItem('currentWorkshopParticipant', JSON.stringify({
+                key: storageKey,
+                role: data.participant.role,
+                nickname: data.participant.nickname
+            }));
             
             // Redirect based on role
             setTimeout(() => {
