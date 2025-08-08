@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop Blockchain - Join</title>
+    <link rel="stylesheet" href="/css/login.css">
+    <script src="/socket.io/socket.io.js"></script>
+   
+</head>
+<body>
+    <div class="login-container">
+        <div class="content-card">
+            <div class="logo">⛓️</div>
+            <h1>Workshop Blockchain</h1>
+            <p class="subtitle">Join the live multiplayer blockchain!</p>
+            
+            <div class="status-message hidden" id="statusMessage"></div>
+            
+            <form id="joinForm">
+                <div class="form-group">
+                    <label for="nickname" class="form-label">Choose Your Nickname:</label>
+                    <input type="text" id="nickname" name="nickname" class="form-input" placeholder="e.g. Alice_2024, Bob_TheBuilder" required maxlength="20">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Choose Your Role:</label>
+                    <div class="role-selector">
+                        <div class="role-option" data-role="user" id="userRole">
+                            <div class="role-icon">💰</div>
+                            <div class="role-title">User</div>
+                            <div class="role-description">Send transactions, trade tokens</div>
+                        </div>
+                        
+                        <div class="role-option" data-role="miner" id="minerRole">
+                            <div class="role-icon">⛏️</div>
+                            <div class="role-title">Miner</div>
+                            <div class="role-description">Mine blocks, earn rewards</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="join-button" id="joinButton" disabled>
+                    🚀 Join Workshop
+                </button>
+            </form>
+        </div>
+        
+        <div class="workshop-links">
+            <h3>Workshop Views</h3>
+            <div class="link-grid">
+                <a href="/dashboard" class="workshop-link" target="_blank">📊 Dashboard</a>
+                <a href="/user" class="workshop-link" target="_blank">👤 User View</a>
+                <a href="/miner" class="workshop-link" target="_blank">⛏️ Miner View</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedRole = null;
+        let socket = null;
+        
+        // Initialize socket connection
+        socket = io();
+        
+        // Role selection
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selection from all options
+                document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('selected'));
+                
+                // Select this option
+                this.classList.add('selected');
+                selectedRole = this.dataset.role;
+                
+                // Enable join button if nickname is filled
+                updateJoinButton();
+            });
+        });
+        
+        // Nickname input
+        document.getElementById('nickname').addEventListener('input', function() {
+            updateJoinButton();
+        });
+        
+        function updateJoinButton() {
+            const nickname = document.getElementById('nickname').value.trim();
+            const joinButton = document.getElementById('joinButton');
+            
+            if (nickname && selectedRole) {
+                joinButton.disabled = false;
+            } else {
+                joinButton.disabled = true;
+            }
+        }
+        
+        // Form submission
+        document.getElementById('joinForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nickname = document.getElementById('nickname').value.trim();
+            
+            if (!nickname || !selectedRole) {
+                showMessage('Please enter a nickname and select a role!', 'error');
+                return;
+            }
+            
+            // Disable form while joining
+            document.getElementById('joinButton').disabled = true;
+            document.getElementById('nickname').disabled = true;
+            document.querySelectorAll('.role-option').forEach(opt => opt.style.pointerEvents = 'none');
+            
+            showMessage('Joining workshop...', 'info');
+            
+            // Send join request
+            socket.emit('join-workshop', {
+                nickname: nickname,
+                role: selectedRole
+            });
+        });
+        
+        // Socket event handlers
+        socket.on('join-success', function(data) {
+            showMessage(`Welcome ${data.participant.nickname}! Redirecting...`, 'success');
+            
+            // Store participant data
+            localStorage.setItem('workshopParticipant', JSON.stringify(data.participant));
+            
+            // Redirect based on role
+            setTimeout(() => {
+                if (data.participant.role === 'user') {
+                    window.location.href = '/user';
+                } else {
+                    window.location.href = '/miner';
+                }
+            }, 1500);
+        });
+        
+        socket.on('join-error', function(data) {
+            showMessage(data.message, 'error');
+            
+            // Re-enable form
+            document.getElementById('joinButton').disabled = false;
+            document.getElementById('nickname').disabled = false;
+            document.querySelectorAll('.role-option').forEach(opt => opt.style.pointerEvents = 'auto');
+        });
+        
+        socket.on('connect', function() {
+            console.log('🔌 Connected to workshop server');
+        });
+        
+        socket.on('disconnect', function() {
+            showMessage('Connection lost! Please refresh the page.', 'error');
+        });
+        
+        function showMessage(message, type) {
+            const messageEl = document.getElementById('statusMessage');
+            messageEl.textContent = message;
+            messageEl.className = `status-message ${type}`;
+            messageEl.classList.remove('hidden');
+        }
+        
+        // Auto-focus nickname input
+        document.getElementById('nickname').focus();
+    </script>
+</body>
+</html>
